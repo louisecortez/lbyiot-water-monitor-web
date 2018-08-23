@@ -1,0 +1,323 @@
+<html>
+    <head>
+        <title>Flood Detection System</title>
+        <script type="text/javascript" src="socket.io.min.js"></script>
+        <script type="text/javascript" src="jquery-1.4.2.js"></script>
+        <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
+        <script type="text/javascript"> 
+            var loaded = false;
+            var data = -1;
+
+            window.onload = function () {
+                var dps = []; // dataPoints
+                var chart = new CanvasJS.Chart("chartContainer", {
+                    title :{
+                        text: "Water Level"
+                    },
+                    axisY: {
+                        includeZero: false,
+                        maximum: 1
+                    },      
+                    data: [{
+                        type: "line",
+                        dataPoints: dps
+                    }]
+                });
+
+                var xVal = -1;
+                var updateInterval = 1000;
+                var dataLength = 20; // number of dataPoints visible at any point
+
+                var updateChart = function (count) {
+                    console.log("data in update chart: " + data);
+                    data = parseFloat(data);
+
+                    if(loaded) {
+                        count = count || 1;
+
+                        dps.push({
+                            x: xVal,
+                            y: data
+                        });
+                        xVal++;
+
+                        if (dps.length > dataLength) {
+                            dps.shift();
+                        }
+
+                        chart.render();
+                    }
+
+                    loaded = false;
+                };
+
+                updateChart(20);
+                setInterval(function(){updateChart()}, updateInterval);
+            }
+            
+            var last = "";
+            var socket = io.connect('http://10.200.180.7:5000');
+            socket.on('connect', function () {
+            socket.on('mqtt', function (msg) {
+                if(msg.payload.charAt(0) == '-') {
+                    data = 0;
+                } else {
+                    data = msg.payload;
+                }
+
+                var elmarr=msg.topic.split("/");
+                var elm=elmarr[3];;
+                var warn = getWarning(data);
+
+                if(data != last) {
+                    addLog(data, warn);
+                    document.getElementById('level').innerHTML=data + " m";
+                    console.log(msg.topic+' '+msg.payload);
+                    $('#'.concat(elm)).html(msg.payload);
+
+                    scrollToBottom();
+                    console.log('data in update: ' + data);
+                    loaded = true;
+                }
+
+                last = data;
+            });
+
+            socket.emit('subscribe',{topic:'level'});
+            });
+
+            function getWarning(data) {
+                var warn = "";
+                if(data >= 0.2 && data < 0.3) {
+                    warn = 'YELLOW';
+                    document.getElementById('warning').innerHTML='YELLOW';
+                    document.getElementById('warning').style.backgroundColor = '#ffdb3a';
+                } else if(data >= 0.3 && data < 0.4) {
+                    warn = 'ORANGE';
+                    document.getElementById('warning').innerHTML='ORANGE';
+                    document.getElementById('warning').style.backgroundColor = '#ff9c39';
+                } else if(data >= 0.4) {
+                    warn = 'RED';
+                    document.getElementById('warning').innerHTML='RED';
+                    document.getElementById('warning').style.backgroundColor = '#ff3838';
+                } else {
+                    warn = 'SAFE';
+                    document.getElementById('warning').innerHTML='SAFE';
+                    document.getElementById('warning').style.backgroundColor = '#000000';
+                }
+
+                return warn;
+            }
+
+            function addLog(data, warning) {
+                var currentdate = new Date(); 
+                var datetime = currentdate.getDate() + "/"
+                                + (currentdate.getMonth()+1)  + "/" 
+                                + currentdate.getFullYear() + " | "  
+                                + currentdate.getHours() + ":"  
+                                + currentdate.getMinutes() + ":" 
+                                + currentdate.getSeconds();
+
+                var logEntry = document.createElement('div');
+                logEntry.id = 'log-entry';
+                var logText = document.createElement('p');
+                logText.id = 'log-text';
+                logText.innerHTML = datetime + " | " + warning + " WARNING: Water level at " + data + " meters";
+
+                if(warning == 'YELLOW') {
+                    logEntry.style.borderBottomColor = '#ffdb3a';
+                } else if(warning == 'ORANGE') {
+                    logEntry.style.borderBottomColor = '#ff9c39';
+                } else if(warning == 'RED') {
+                    logEntry.style.borderBottomColor = '#ff3838';
+                } else {
+                    logEntry.style.borderBottomColor = '#000000';
+                }
+
+                logEntry.append(logText);
+                document.getElementById('log-container').append(logEntry);
+            }
+
+            function scrollToBottom() {
+                var logContainer = document.getElementById('log-container');
+                logContainer.scrollTop = logContainer.scrollHeight;
+            }
+        </script>
+
+        <style>
+            html {
+                -webkit-box-sizing: border-box;
+                box-sizing: border-box;
+                height: 100%;
+                }
+
+                *,
+                *::before,
+                *::after {
+                -webkit-box-sizing: inherit;
+                box-sizing: inherit;
+                margin: 0;
+                padding: 0;
+                }
+
+                div {
+                padding: 1em;
+                }
+
+                /* 
+                min-ontent is the max width at the time.
+                max-content keeps the longest word
+                */
+
+                body {
+                    height: 100vh;
+                    display:grid;
+                    grid-template-columns: minmax(max-content, 30vw) 1fr;
+                    grid-template-rows: min-content min-content 1fr min-content; 
+                    grid-template-areas: 'title stats'
+                                        'title stats'
+                                        'board board'
+                                        'controls controls';
+                        
+                }
+
+                @media screen and (min-aspect-ratio: 1/1){
+                body {
+                    display:grid;
+                    grid-template-columns: minmax(max-content, 30vw) 1fr;
+                    grid-template-rows: min-content 1fr min-content; 
+                    grid-template-areas: 'title board'
+                                        'stats board'
+                                        'controls controls';
+                }
+                }
+
+                .title {
+                background: #c59fc9;
+                grid-area: title;
+                }
+
+                .stats {
+                background: #f9f9f9;
+                /*  grid-area: stats;*/
+                word-wrap: break-word;
+                width: 450px;
+                }
+
+                .board {
+                background: #ffffff;
+                grid-area: board;
+                    /*align-self is shrink to fit*/
+                display: flex;
+                align-content: center;
+                flex-direction: column;
+                text-align: center;
+                    /*flex-wrap wraps around. align-content aligns the lines as a unit*/
+                }
+
+                .current-stats {
+                    display: flex;
+                    flex-direction: row;
+                    justify-content: center;
+                }
+
+                .controls {
+                background: #97f9f9;
+                grid-area: controls;
+                    text-align: center;
+                }
+
+                .heading-text {
+                    font-family: 'Montserrat', sans-serif;
+                    color: #f3f3f3;
+                }
+
+                .heading-text2 {
+                    font-family: 'Montserrat', sans-serif;
+                    color: #000000;
+                    font-size: 20px;
+                    margin-bottom: 10px;
+                }
+
+                .body-text {
+                    font-family: 'Montserrat', sans-serif;
+                }
+
+                #log-text {
+                    font-family: 'Montserrat', sans-serif;
+                }
+
+                #log-container {
+                    background-color: #ffffff;
+                    height: 440px;
+                    border: 1px solid #dbdbdb;
+                    box-shadow: 5px 5px #f3f3f3;
+                    overflow: auto;
+                    scroll-behavior: auto;
+                }
+
+                #log-entry {
+                    border-bottom: 2px solid #000000;
+                }
+
+                .for-marginb {
+                    margin-bottom: 10px;
+                }
+
+                .cstats {
+                    margin-left: 10px;
+                    margin-right: 10px;
+                    font-family: 'Montserrat', sans-serif;
+                    font-weight: 700;
+                    font-size: 2em;
+                }
+
+                #warning {
+                    background-color: black;
+                    padding-left: 20px;
+                    padding-right: 20px;
+                    color: #f9f9f9;
+                    margin-top: auto;
+                    margin-bottom: auto;
+                }
+
+                .names {
+                    font-size: 10pt;
+                    margin-top: 15px;
+                    margin-left: 5px;
+                }
+
+                #graph{
+                    padding-top: 20vh;
+                    padding-bottom: 20vh;
+                }
+        </style> 
+    </head>
+
+    <body>
+        <div class="title">
+            <h1 class="heading-text">Flood Detector</h1>
+        </div>
+        
+        <div class="stats">
+            <h2 class="heading-text2">Current Water Level</h2>
+            <div class="current-stats for-marginb">
+                <p class="body-text cstats" id="level"></p>
+                <p class="body-text cstats" id="warning"></p>
+            </div>
+                
+            <div id="log-container">
+                <h2 class="heading-text2">Water Meter Log</h2>
+            </div>
+
+            <p class="body-text names"><span>Aboy, William | </span> <span>Cortez, Louise | </span> <span>Rivera, Sophia</span></p>
+        </div>     
+        
+        <div class="board">
+        <h2 class="heading-text2">Hey you! Remeber to be vigilant during times of flooding.</h2>
+        <div id="chartContainer" style="height: 300px; width: 100%;"></div>
+        <div class="board_text">
+            <p class="body-text"></p>
+        </div>
+    </body>
+</html>

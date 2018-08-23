@@ -1,0 +1,179 @@
+html {
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+  height: 100%;
+}
+
+*,
+*::before,
+*::after {
+  -webkit-box-sizing: inherit;
+  box-sizing: inherit;
+  margin: 0;
+  padding: 0;
+}
+
+div {
+  padding: 1em;
+}
+
+/* 
+min-ontent is the max width at the time.
+max-content keeps the longest word
+*/
+
+body {
+    height: 100vh;
+    display:grid;
+    grid-template-columns: minmax(max-content, 30vw) 1fr;
+    grid-template-rows: min-content min-content 1fr min-content; 
+    grid-template-areas: 'title stats'
+                         'title stats'
+                         'board board'
+                         'controls controls';
+        
+}
+
+@media screen and (min-aspect-ratio: 1/1){
+  body {
+    display:grid;
+    grid-template-columns: minmax(max-content, 30vw) 1fr;
+    grid-template-rows: min-content 1fr min-content; 
+    grid-template-areas: 'title board'
+                         'stats board'
+                         'controls controls';
+  }
+}
+
+.title {
+  background: #c59fc9;
+  grid-area: title;
+}
+
+.score {
+  background: ivory;
+  grid-area: score;
+}
+
+.stats {
+  background: #f9f9f9;
+/*  grid-area: stats;*/
+  word-wrap: break-word;
+  width: 450px;
+}
+
+.board {
+  background: ivory;
+  grid-area: board;
+    /*align-self is shrink to fit*/
+  display: flex;
+  align-content: center;
+  flex-direction: column;
+  text-align: center;
+    /*flex-wrap wraps around. align-content aligns the lines as a unit*/
+}
+
+.current-stats {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+}
+
+.controls {
+  background: #97f9f9;
+  grid-area: controls;
+    text-align: center;
+}
+
+.heading-text {
+    font-family: 'Montserrat', sans-serif;
+    color: #f3f3f3;
+}
+
+.heading-text2 {
+    font-family: 'Montserrat', sans-serif;
+    color: #000000;
+    font-size: 20px;
+    margin-bottom: 10px;
+}
+
+.body-text {
+    font-family: 'Montserrat', sans-serif;
+}
+
+.log-container {
+    background-color: #ffffff;
+    height: 440px;
+    border: 1px solid #dbdbdb;
+    box-shadow: 5px 5px #f3f3f3;
+    overflow: scroll;
+}
+
+.log-entry {
+    margin-bottom: 10px;
+}
+
+.for-marginb {
+    margin-bottom: 10px;
+}
+
+.cstats {
+    margin-left: 10px;
+    margin-right: 10px;
+    font-family: 'Montserrat', sans-serif;
+    font-weight: 700;
+    font-size: 2em;
+}
+
+.warning {
+    background-color: red;
+    padding-left: 20px;
+    padding-right: 20px;
+    color: #f9f9f9;
+}
+
+.line-log {
+    width: 100%;
+    color: #c59fc9;
+}
+
+/* WATER ANIMATION */
+
+#container {
+    margin-right:auto;
+    width: 300px;
+}
+
+#glass {
+    background: rgba( 255, 255, 255, 0.50);
+    width: 200px;
+    height: 500px;
+    position: relative;
+    border-radius: 100%;
+}
+
+#water {
+    background-image: url("https://priteshgupta.com/demos/fill/waves.png");
+    background-position: top right;
+    position: absolute;
+    bottom: 0px;
+    width: 300px;
+    height: 10em;
+      border-radius: 100%;
+    -webkit-transition: all 3s ease-out;
+    -moz-transition: all 3s ease-out;
+    -o-transition: all 3s ease-out;
+    transition: all 3s ease-out;
+    -webkit-border-radius: 10px;
+    -moz-border-radius: 10px;
+    border-radius: 10px;
+}
+
+#glass:hover #water {
+    height: 30em;
+    background-position: top left;
+    -webkit-transition: all 3s ease-out;
+    -moz-transition: all 3s ease-out;
+    -o-transition: all 3s ease-out;
+    transition: all 3s ease-out;
+}

@@ -1,0 +1,19 @@
+{
+  "name": "watermonitor",
+  "version": "1.0.0",
+  "description": "IoT Water Level Monitoring App",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.16.3",
+    "mqtt": "^2.18.3",
+    "socket.io": "^2.1.1"
+  },
+  "devDependencies": {
+    "ws": "3.3.2"
+  }
+}
